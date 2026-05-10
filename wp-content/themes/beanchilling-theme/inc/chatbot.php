@@ -2,9 +2,9 @@
 /**
  * BeanChilling AI Chatbot
  *
- * Powered by Groq free tier (llama-3.1-8b-instant).
- * Requires: define( 'GROQ_API_KEY', 'your-key' ) in wp-config.php.
- * Free key: https://console.groq.com/keys
+ * Powered by Google Gemini 2.5 Flash via AI Studio.
+ * Requires: define( 'GEMINI', 'your-api-key' ) in wp-config.php.
+ * Free key: https://aistudio.google.com
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,8 +15,8 @@ class BeanChilling_Chatbot {
 
 	const AJAX_ACTION  = 'beanchilling_chat';
 	const NONCE_ACTION = 'bc_chat_nonce';
-	const GROQ_MODEL   = 'llama-3.1-8b-instant';
-	const MAX_HISTORY  = 8; // max history items accepted from client
+	const MODEL_ID     = 'gemini-2.5-flash';
+	const MAX_HISTORY  = 8;
 
 	public function __construct() {
 		add_action( 'wp_ajax_' . self::AJAX_ACTION,        array( $this, 'handle_ajax' ) );
@@ -36,29 +36,53 @@ class BeanChilling_Chatbot {
 			wp_send_json_error( array( 'reply' => 'Please enter a message.' ) );
 		}
 
-		$api_key = defined( 'GROQ_API_KEY' ) ? GROQ_API_KEY : '';
+		$api_key = defined( 'GEMINI' ) ? GEMINI : '';
 		if ( '' === $api_key ) {
-			wp_send_json_error( array( 'reply' => 'The chatbot is not configured yet. Add your Groq API key to wp-config.php.' ) );
+			wp_send_json_error( array( 'reply' => 'The chatbot is not configured yet. Add your Gemini API key to wp-config.php.' ) );
 		}
 
 		$messages = $this->build_messages( $message );
 
+		// Separate system prompt from conversation history
+		$system_text = '';
+		$contents    = array();
+
+		foreach ( $messages as $msg ) {
+			if ( 'system' === $msg['role'] ) {
+				$system_text = $msg['content'];
+				continue;
+			}
+			$contents[] = array(
+				'role'  => ( 'assistant' === $msg['role'] ) ? 'model' : 'user',
+				'parts' => array( array( 'text' => $msg['content'] ) ),
+			);
+		}
+
 		$payload = wp_json_encode( array(
-			'model'       => self::GROQ_MODEL,
-			'messages'    => $messages,
-			'max_tokens'  => 350,
-			'temperature' => 0.4,
+			'system_instruction' => array(
+				'parts' => array( array( 'text' => $system_text ) ),
+			),
+			'contents'         => $contents,
+			'generationConfig' => array(
+				'maxOutputTokens' => 350,
+				'temperature'     => 0.4,
+			),
 		) );
 
+		$endpoint = sprintf(
+			'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s',
+			self::MODEL_ID,
+			$api_key
+		);
+
 		$response = wp_remote_post(
-			'https://api.groq.com/openai/v1/chat/completions',
+			$endpoint,
 			array(
 				'headers' => array(
-					'Content-Type'  => 'application/json',
-					'Authorization' => 'Bearer ' . $api_key,
+					'Content-Type' => 'application/json',
 				),
 				'body'    => $payload,
-				'timeout' => 15,
+				'timeout' => 20,
 			)
 		);
 
@@ -69,18 +93,20 @@ class BeanChilling_Chatbot {
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 
 		if ( ! empty( $data['error'] ) ) {
-			wp_send_json_error( array( 'reply' => 'API error: ' . esc_html( isset( $data['error']['message'] ) ? $data['error']['message'] : 'Unknown error' ) ) );
+			wp_send_json_error( array(
+				'reply' => 'API error: ' . esc_html( isset( $data['error']['message'] ) ? $data['error']['message'] : 'Unknown error' ),
+			) );
 		}
 
-		$reply = isset( $data['choices'][0]['message']['content'] )
-			? $data['choices'][0]['message']['content']
+		$reply = isset( $data['candidates'][0]['content']['parts'][0]['text'] )
+			? $data['candidates'][0]['content']['parts'][0]['text']
 			: 'Sorry, I could not generate a response.';
 
 		wp_send_json_success( array( 'reply' => wp_strip_all_tags( $reply ) ) );
 	}
 
 	// -----------------------------------------------------------------------
-	// Build OpenAI-format messages array (system + history + current message)
+	// Build Gemini-format messages array (system + history + current message)
 	// -----------------------------------------------------------------------
 
 	private function build_messages( $message ) {

@@ -92,7 +92,7 @@ define( 'WP_DEBUG', false );
 /* Add any custom values between this line and the "stop editing" line. */
 
 // Groq API key for the AI chatbot (genuinely free — get yours at https://console.groq.com/keys)
-define( 'GROQ_API_KEY', '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' );
+define('GEMINI','AIzaSyCAspISIOQ-noZMQbvDcU95Rp2EXkmZIRA');
 
 // Dynamic site URL — makes all image/asset URLs work from any device on the network.
 $_bc_host   = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : 'localhost';
