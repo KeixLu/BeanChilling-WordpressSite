@@ -1,0 +1,485 @@
+/* BeanChilling - Main Stylesheet (WordPress/Elementor Version) */
+/* Google Fonts loaded via wp_enqueue_style in functions.php */
+
+:root {
+    --nav-bg: rgba(0, 0, 0, 0.58);
+    --text-main: #f5f4f0;
+    --accent: #d6b37a;
+    --text-soft: rgba(245, 244, 240, 0.82);
+    --panel: rgba(255, 255, 255, 0.06);
+    --panel-border: rgba(255, 255, 255, 0.16);
+    --panel-strong: rgba(0, 0, 0, 0.32);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    color: var(--text-main);
+    font-family: "Sora", "Segoe UI", Tahoma, sans-serif;
+    background: radial-gradient(circle at top left, #4c3a25 0%, #26180f 45%, #130d08 100%);
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+a {
+    color: inherit;
+}
+
+/* ---- Navigation ---- */
+.navbar {
+    width: 100%;
+    background-color: var(--nav-bg);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.5rem;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--text-main);
+    text-decoration: none;
+}
+
+.brand-icon {
+    width: 2rem;
+    height: 2rem;
+    border: 1.5px dashed rgba(245, 244, 240, 0.7);
+    border-radius: 0.5rem;
+    display: inline-block;
+}
+
+.brand-name {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+/* WordPress custom logo in navbar */
+.brand .custom-logo-link {
+    display: inline-flex;
+    align-items: center;
+}
+
+.brand .custom-logo {
+    max-height: 2.2rem;
+    width: auto;
+}
+
+.nav-links li {
+    margin: 0;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links a {
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    transition: color 0.2s ease;
+}
+
+.nav-links a:hover,
+.nav-links a:focus-visible {
+    color: var(--accent);
+}
+
+.nav-links a[aria-current="page"],
+.nav-links .current-menu-item > a {
+    color: var(--accent);
+}
+
+/* ---- Layout ---- */
+.site-main {
+    width: 100%;
+    flex: 1 0 auto;
+}
+
+.site-footer {
+    flex-shrink: 0;
+}
+
+.page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.page-wrap.narrow {
+    max-width: 860px;
+}
+
+.section {
+    padding: 3.8rem 0;
+}
+
+.section.alt {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.15));
+}
+
+/* ---- Typography ---- */
+.eyebrow {
+    margin: 0 0 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.74rem;
+    color: var(--accent);
+}
+
+h1,
+h2,
+h3 {
+    font-family: "Fraunces", Georgia, serif;
+    margin-top: 0;
+}
+
+h1 {
+    font-size: clamp(2rem, 2.8vw, 3rem);
+    line-height: 1.1;
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    font-size: clamp(1.6rem, 2.1vw, 2.2rem);
+    margin-bottom: 1.25rem;
+}
+
+.lede {
+    color: var(--text-soft);
+    line-height: 1.7;
+    max-width: 65ch;
+}
+
+/* ---- Hero ---- */
+.hero {
+    padding-top: 4.2rem;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 2rem;
+    align-items: center;
+}
+
+.hero-visual {
+    margin: 0;
+    border: 1px solid var(--panel-border);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28);
+}
+
+.hero-visual img {
+    width: 100%;
+    height: 100%;
+    min-height: 280px;
+    object-fit: cover;
+}
+
+/* ---- Buttons ---- */
+.btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 1.4rem;
+}
+
+.btn {
+    background: var(--accent);
+    color: #1f150d;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.68rem 1rem;
+    border-radius: 999px;
+}
+
+.btn.btn-secondary {
+    background: transparent;
+    border: 1px solid rgba(214, 179, 122, 0.65);
+    color: var(--text-main);
+}
+
+.text-link {
+    color: var(--accent);
+    text-underline-offset: 0.22rem;
+}
+
+/* ---- Cards ---- */
+.card-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.three-up {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.card {
+    background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+    border: 1px solid var(--panel-border);
+    border-radius: 0.95rem;
+    padding: 1.1rem;
+}
+
+.card p {
+    color: var(--text-soft);
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+/* ---- Split Layout ---- */
+.split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem 1.6rem;
+    align-items: center;
+}
+
+/* ---- Mini Cards ---- */
+.team-mini-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+}
+
+.mini-card {
+    border: 1px solid var(--panel-border);
+    border-radius: 0.85rem;
+    padding: 0.95rem;
+    background: rgba(255, 255, 255, 0.03);
+    font-weight: 600;
+}
+
+/* ---- Footer ---- */
+.site-footer {
+    background: rgba(0, 0, 0, 0.55);
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 1.2rem 0;
+    color: rgba(245, 244, 240, 0.60);
+    font-size: 0.875rem;
+}
+
+.site-footer .page-wrap {
+    width: 100%;
+}
+
+/* ---- Page Hero ---- */
+.page-hero {
+    padding-top: 3.6rem;
+    padding-bottom: 1.8rem;
+}
+
+.section-note {
+    margin-top: -0.3rem;
+    margin-bottom: 1.4rem;
+    color: var(--text-soft);
+}
+
+/* ---- WordPress Block Editor Compatibility ---- */
+/* Block groups wrap children in .wp-block-group__inner-container which breaks
+   theme grid/flex layouts. display:contents makes the wrapper transparent. */
+.hero-grid > .wp-block-group__inner-container,
+.card-grid > .wp-block-group__inner-container,
+.three-up > .wp-block-group__inner-container,
+.split > .wp-block-group__inner-container,
+.btn-row > .wp-block-group__inner-container,
+.team-mini-grid > .wp-block-group__inner-container,
+.team-grid > .wp-block-group__inner-container,
+.imrad-grid > .wp-block-group__inner-container,
+.showcase-grid > .wp-block-group__inner-container {
+    display: contents;
+}
+
+/* ---- Elementor Compatibility ---- */
+/* Ensure Elementor content spans full viewport width */
+main {
+    width: 100%;
+}
+
+body.elementor-page main,
+body.elementor-page .elementor-fullwidth-content {
+    overflow-x: hidden;
+}
+
+.elementor {
+    width: 100%;
+}
+
+/* Let Elementor stretched sections break out properly */
+.elementor-section.elementor-section-stretched {
+    width: 100vw !important;
+    max-width: 100vw !important;
+}
+
+/* Center boxed Elementor sections */
+.elementor-section.elementor-section-boxed > .elementor-container {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Full-width Elementor sections */
+.elementor-section.elementor-section-full_width > .elementor-container {
+    max-width: 100%;
+}
+
+/* Elementor columns within full-width template */
+.elementor-fullwidth-content .elementor-section {
+    width: 100%;
+}
+
+/* ---- Team Grid ---- */
+.team-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.profile-card h3 {
+    margin-bottom: 0.45rem;
+}
+
+.avatar-placeholder {
+    height: 110px;
+    border-radius: 0.7rem;
+    border: 1px dashed rgba(255, 255, 255, 0.25);
+    display: grid;
+    place-items: center;
+    margin-bottom: 0.9rem;
+    color: var(--text-soft);
+}
+
+/* ---- IMRAD Grid ---- */
+.imrad-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* ---- Showcase Grid ---- */
+.showcase-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.screenshot-placeholder {
+    min-height: 150px;
+    border-radius: 0.7rem;
+    border: 1px dashed rgba(255, 255, 255, 0.22);
+    display: grid;
+    place-items: center;
+    color: var(--text-soft);
+    margin-bottom: 0.85rem;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* ---- Elementor Overrides ---- */
+/* Let Elementor control layout on edited pages */
+.elementor-page .page-wrap {
+    max-width: none;
+    padding: 0;
+}
+
+.elementor-page .section {
+    padding: 0;
+}
+
+/* Elementor full-width content */
+.elementor-fullwidth-content {
+    width: 100%;
+}
+
+/* Make Elementor sections inherit BeanChilling dark theme */
+.elementor-section {
+    color: var(--text-main);
+}
+
+.elementor-widget-text-editor,
+.elementor-widget-heading {
+    color: var(--text-main);
+}
+
+/* Elementor heading widget - use Fraunces */
+.elementor-widget-heading .elementor-heading-title {
+    font-family: "Fraunces", Georgia, serif;
+}
+
+/* Elementor button widget - inherit BeanChilling style */
+.elementor-widget-button .elementor-button {
+    background-color: var(--accent);
+    color: #1f150d;
+    font-weight: 600;
+    border-radius: 999px;
+    font-family: "Sora", "Segoe UI", Tahoma, sans-serif;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 700px) {
+    .nav-inner {
+        flex-wrap: wrap;
+        row-gap: 0.8rem;
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+    }
+}
+
+@media (max-width: 1020px) {
+    .hero-grid,
+    .split,
+    .team-grid,
+    .showcase-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .three-up,
+    .imrad-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 620px) {
+    .section {
+        padding: 3rem 0;
+    }
+
+    .three-up,
+    .imrad-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero {
+        padding-top: 3rem;
+    }
+}
