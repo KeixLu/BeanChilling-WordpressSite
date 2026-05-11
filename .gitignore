@@ -1,0 +1,16 @@
+# WordPress sensitive config — never commit real credentials
+wp-config.php
+
+# Debug logs
+wp-content/debug.log
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local uploads (large media files)
+wp-content/uploads/
+
+# Cache
+wp-content/cache/

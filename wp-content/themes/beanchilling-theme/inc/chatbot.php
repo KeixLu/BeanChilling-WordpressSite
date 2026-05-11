@@ -2,9 +2,10 @@
 /**
  * BeanChilling AI Chatbot
  *
- * Powered by Google Gemini 2.5 Flash via AI Studio.
- * Requires: define( 'GEMINI', 'your-api-key' ) in wp-config.php.
- * Free key: https://aistudio.google.com
+ * Powered by Google Gemini via Vertex AI Express (aiplatform.googleapis.com).
+ * Uses x-goog-api-key header auth — works from all regions including PH.
+ * Requires: define( 'GEMINI_API_KEY', 'AQ...your-key' ) in wp-config.php.
+ * Key source: Google AI Studio with vertexai=True (AQ. prefix key)
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,8 +16,8 @@ class BeanChilling_Chatbot {
 
 	const AJAX_ACTION  = 'beanchilling_chat';
 	const NONCE_ACTION = 'bc_chat_nonce';
-	const MODEL_ID     = 'gemini-2.5-flash';
-	const MAX_HISTORY  = 8;
+	const GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
+	const MAX_HISTORY  = 8; // max history items accepted from client
 
 	public function __construct() {
 		add_action( 'wp_ajax_' . self::AJAX_ACTION,        array( $this, 'handle_ajax' ) );
@@ -36,31 +37,16 @@ class BeanChilling_Chatbot {
 			wp_send_json_error( array( 'reply' => 'Please enter a message.' ) );
 		}
 
-		$api_key = defined( 'GEMINI' ) ? GEMINI : '';
+		$api_key = defined( 'GEMINI_API_KEY' ) ? GEMINI_API_KEY : '';
 		if ( '' === $api_key ) {
 			wp_send_json_error( array( 'reply' => 'The chatbot is not configured yet. Add your Gemini API key to wp-config.php.' ) );
 		}
 
-		$messages = $this->build_messages( $message );
-
-		// Separate system prompt from conversation history
-		$system_text = '';
-		$contents    = array();
-
-		foreach ( $messages as $msg ) {
-			if ( 'system' === $msg['role'] ) {
-				$system_text = $msg['content'];
-				continue;
-			}
-			$contents[] = array(
-				'role'  => ( 'assistant' === $msg['role'] ) ? 'model' : 'user',
-				'parts' => array( array( 'text' => $msg['content'] ) ),
-			);
-		}
+		$contents = $this->build_contents( $message );
 
 		$payload = wp_json_encode( array(
 			'system_instruction' => array(
-				'parts' => array( array( 'text' => $system_text ) ),
+				'parts' => array( array( 'text' => $this->get_system_prompt() ) ),
 			),
 			'contents'         => $contents,
 			'generationConfig' => array(
@@ -69,20 +55,17 @@ class BeanChilling_Chatbot {
 			),
 		) );
 
-		$endpoint = sprintf(
-			'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s',
-			self::MODEL_ID,
-			$api_key
-		);
-
 		$response = wp_remote_post(
-			$endpoint,
+			'https://aiplatform.googleapis.com/v1beta1/publishers/google/models/'
+				. self::GEMINI_MODEL
+				. ':generateContent',
 			array(
 				'headers' => array(
-					'Content-Type' => 'application/json',
+					'Content-Type'   => 'application/json',
+					'x-goog-api-key' => $api_key,
 				),
 				'body'    => $payload,
-				'timeout' => 20,
+				'timeout' => 15,
 			)
 		);
 
@@ -93,9 +76,7 @@ class BeanChilling_Chatbot {
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 
 		if ( ! empty( $data['error'] ) ) {
-			wp_send_json_error( array(
-				'reply' => 'API error: ' . esc_html( isset( $data['error']['message'] ) ? $data['error']['message'] : 'Unknown error' ),
-			) );
+			wp_send_json_error( array( 'reply' => 'API error: ' . esc_html( isset( $data['error']['message'] ) ? $data['error']['message'] : 'Unknown error' ) ) );
 		}
 
 		$reply = isset( $data['candidates'][0]['content']['parts'][0]['text'] )
@@ -106,28 +87,28 @@ class BeanChilling_Chatbot {
 	}
 
 	// -----------------------------------------------------------------------
-	// Build Gemini-format messages array (system + history + current message)
+	// Build Gemini contents array (history + current message)
 	// -----------------------------------------------------------------------
 
-	private function build_messages( $message ) {
-		$messages    = array( array( 'role' => 'system', 'content' => $this->get_system_prompt() ) );
+	private function build_contents( $message ) {
+		$contents    = array();
 		$history_raw = wp_unslash( isset( $_POST['history'] ) ? $_POST['history'] : '[]' );
 		$history     = json_decode( $history_raw, true );
 
 		if ( is_array( $history ) ) {
 			$history = array_slice( $history, -self::MAX_HISTORY );
 			foreach ( $history as $item ) {
-				$role = ( isset( $item['role'] ) && 'model' === $item['role'] ) ? 'assistant' : 'user';
+				$role = ( isset( $item['role'] ) && 'model' === $item['role'] ) ? 'model' : 'user';
 				$text = sanitize_text_field( isset( $item['text'] ) ? $item['text'] : '' );
 				if ( '' !== $text ) {
-					$messages[] = array( 'role' => $role, 'content' => $text );
+					$contents[] = array( 'role' => $role, 'parts' => array( array( 'text' => $text ) ) );
 				}
 			}
 		}
 
-		$messages[] = array( 'role' => 'user', 'content' => $message );
+		$contents[] = array( 'role' => 'user', 'parts' => array( array( 'text' => $message ) ) );
 
-		return $messages;
+		return $contents;
 	}
 
 	// -----------------------------------------------------------------------
@@ -202,12 +183,12 @@ class BeanChilling_Chatbot {
 #bc-chat-messages::-webkit-scrollbar-track{background:transparent}
 #bc-chat-messages::-webkit-scrollbar-thumb{background:rgba(214,179,122,.25);border-radius:4px}
 .bc-msg{max-width:88%;padding:8px 13px;border-radius:12px;word-break:break-word;font-size:13px;line-height:1.5}
-.bc-msg-bot{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#f5f4f0;align-self:flex-start;border-bottom-left-radius:3px}
-.bc-msg-user{background:rgba(214,179,122,.18);border:1px solid rgba(214,179,122,.28);color:#f5f4f0;align-self:flex-end;border-bottom-right-radius:3px}
-.bc-typing{color:rgba(245,244,240,.45);font-style:italic}
+.bc-msg-bot{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#ffffff;align-self:flex-start;border-bottom-left-radius:3px}
+.bc-msg-user{background:rgba(214,179,122,.18);border:1px solid rgba(214,179,122,.28);color:#ffffff;align-self:flex-end;border-bottom-right-radius:3px}
+.bc-typing{color:rgba(255,255,255,.5);font-style:italic}
 #bc-chat-input-row{display:flex;border-top:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25)}
-#bc-chat-input{flex:1;background:none;border:none;outline:none;color:#f5f4f0;padding:10px 12px;font-family:inherit;font-size:13px}
-#bc-chat-input::placeholder{color:rgba(245,244,240,.35)}
+#bc-chat-input{flex:1;background:none;border:none;outline:none;color:#ffffff;padding:10px 12px;font-family:inherit;font-size:13px}
+#bc-chat-input::placeholder{color:rgba(255,255,255,.4)}
 #bc-chat-send{background:none;border:none;cursor:pointer;color:#d6b37a;padding:10px 14px;font-size:18px;line-height:1;transition:opacity .15s}
 #bc-chat-send:hover{opacity:.75}
 #bc-chat-send:disabled{opacity:.3;cursor:default}
